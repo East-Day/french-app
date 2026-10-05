@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atelier B2 · 法语练习</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Outfit", "system-ui", "sans-serif"],
+            serif: ["Fraunces", "Georgia", "serif"],
+          },
+          colors: {
+            ink: "#0b0b0d",
+            panel: "#141418",
+            line: "#2b2b32",
+            mute: "#8b8b96",
+            cream: "#f4efe6",
+            gold: "#d7b07a",
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    html, body { background: #0b0b0d; color: #f4efe6; }
+    .grain {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .win {
+      background: linear-gradient(180deg, #1a1a20 0%, #121216 100%);
+      box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .win-dot { width: 9px; height: 9px; border-radius: 99px; }
+    input:focus, button:focus-visible { outline: 1px solid #d7b07a; outline-offset: 2px; }
+    .choice {
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .choice:hover { transform: translateY(-1px); }
+    #overlay-mark {
+      min-width: min(90vw, 640px);
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+  <div class="grain"></div>
+  <div class="pointer-events-none fixed inset-0 opacity-70" style="background: radial-gradient(900px 500px at 12% -10%, rgba(215,176,122,.12), transparent 55%), radial-gradient(700px 420px at 110% 20%, rgba(90,110,160,.12), transparent 50%);"></div>
+
+  <header class="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
+    <div class="flex items-center gap-3">
+      <span class="flex h-8 w-8 items-center justify-center rounded-full border border-line text-gold"><i class="fa-solid fa-feather"></i></span>
+      <div>
+        <p class="text-[11px] tracking-[0.28em] uppercase text-mute">Français · Niveau B2</p>
+        <h1 class="font-serif text-xl leading-none text-cream">Atelier</h1>
+      </div>
+    </div>
+    <p id="scoreline" class="text-sm text-mute">对 0  ·  错 0</p>
+  </header>
+
+  <main class="relative z-10 px-4 pb-12 md:px-8">
+    <div class="mx-auto grid max-w-6xl grid-cols-1 gap-5 lg:grid-cols-2">
+      <article class="win animate__animated animate__zoomIn rounded-2xl border border-line" style="animation-delay:.05s" data-mode="fem">
+        <div class="flex items-center justify-between border-b border-line px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="win-dot bg-[#ff5f57]"></span><span class="win-dot bg-[#febc2e]"></span><span class="win-dot bg-[#28c840]"></span>
+            <span class="ml-2 text-xs tracking-wide text-mute"><i class="fa-solid fa-venus-mars mr-1.5 text-gold"></i>阳性变阴性</span>
+          </div>
+          <span class="count text-[11px] text-mute"></span>
+        </div>
+        <div class="space-y-5 px-5 py-6">
+          <p class="text-[11px] uppercase tracking-[0.22em] text-mute">Écris la forme féminine</p>
+          <div class="prompt"></div>
+          <form class="answer-form space-y-3">
+            <input autocomplete="off" spellcheck="false" class="w-full rounded-xl border border-line bg-ink/60 px-4 py-3 text-lg text-cream placeholder:text-mute/60" placeholder="阴性形式" />
+            <button type="submit" class="w-full rounded-xl bg-cream py-2.5 text-sm font-medium tracking-wide text-ink transition hover:bg-gold">确认</button>
+          </form>
+        </div>
+      </article>
+
+      <article class="win animate__animated animate__zoomIn rounded-2xl border border-line" style="animation-delay:.16s" data-mode="plural">
+        <div class="flex items-center justify-between border-b border-line px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="win-dot bg-[#ff5f57]"></span><span class="win-dot bg-[#febc2e]"></span><span class="win-dot bg-[#28c840]"></span>
+            <span class="ml-2 text-xs tracking-wide text-mute"><i class="fa-solid fa-layer-group mr-1.5 text-gold"></i>变复数</span>
+          </div>
+          <span class="count text-[11px] text-mute"></span>
+        </div>
+        <div class="space-y-5 px-5 py-6">
+          <p class="text-[11px] uppercase tracking-[0.22em] text-mute">Écris le pluriel</p>
+          <div class="prompt"></div>
+          <form class="answer-form space-y-3">
+            <input autocomplete="off" spellcheck="false" class="w-full rounded-xl border border-line bg-ink/60 px-4 py-3 text-lg text-cream placeholder:text-mute/60" placeholder="复数形式" />
+            <button type="submit" class="w-full rounded-xl bg-cream py-2.5 text-sm font-medium tracking-wide text-ink transition hover:bg-gold">确认</button>
+          </form>
+        </div>
+      </article>
+
+      <article class="win animate__animated animate__zoomIn rounded-2xl border border-line" style="animation-delay:.28s" data-mode="verb">
+        <div class="flex items-center justify-between border-b border-line px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="win-dot bg-[#ff5f57]"></span><span class="win-dot bg-[#febc2e]"></span><span class="win-dot bg-[#28c840]"></span>
+            <span class="ml-2 text-xs tracking-wide text-mute"><i class="fa-solid fa-language mr-1.5 text-gold"></i>动词变位</span>
+          </div>
+          <span class="count text-[11px] text-mute"></span>
+        </div>
+        <div class="space-y-5 px-5 py-6">
+          <p class="text-[11px] uppercase tracking-[0.22em] text-mute">Présent de l’indicatif</p>
+          <div class="prompt"></div>
+          <form class="answer-form space-y-3">
+            <input autocomplete="off" spellcheck="false" class="w-full rounded-xl border border-line bg-ink/60 px-4 py-3 text-lg text-cream placeholder:text-mute/60" placeholder="变位形式" />
+            <button type="submit" class="w-full rounded-xl bg-cream py-2.5 text-sm font-medium tracking-wide text-ink transition hover:bg-gold">确认</button>
+          </form>
+        </div>
+      </article>
+
+      <article class="win animate__animated animate__zoomIn rounded-2xl border border-line" style="animation-delay:.4s" data-mode="gender">
+        <div class="flex items-center justify-between border-b border-line px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="win-dot bg-[#ff5f57]"></span><span class="win-dot bg-[#febc2e]"></span><span class="win-dot bg-[#28c840]"></span>
+            <span class="ml-2 text-xs tracking-wide text-mute"><i class="fa-solid fa-mars-and-venus mr-1.5 text-gold"></i>阴阳性区分</span>
+          </div>
+          <span class="count text-[11px] text-mute"></span>
+        </div>
+        <div class="space-y-5 px-5 py-6">
+          <p class="text-[11px] uppercase tracking-[0.22em] text-mute">Masculin ou féminin ?</p>
+          <div class="prompt"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-g="m" class="choice rounded-xl border border-line bg-ink/40 py-4 font-serif text-2xl hover:border-gold">阳</button>
+            <button type="button" data-g="f" class="choice rounded-xl border border-line bg-ink/40 py-4 font-serif text-2xl hover:border-gold">阴</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <div id="overlay" class="fixed inset-0 z-[90] hidden">
+    <div class="absolute inset-0 bg-black/75 backdrop-blur-md"></div>
+    <div class="relative flex h-full flex-col items-center justify-center px-6">
+      <p id="overlay-mark" class="animate__animated font-serif text-7xl font-medium tracking-[0.18em] text-red-500 md:text-8xl">Faux</p>
+      <button id="remember" type="button" class="mt-10 hidden rounded-full border border-red-500/40 px-8 py-3 text-sm tracking-wide text-cream transition hover:bg-red-500/10">
+        我记住了
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const FEM = [
+      ["acteur", "actrice"], ["chanteur", "chanteuse"], ["directeur", "directrice"],
+      ["serveur", "serveuse"], ["vendeur", "vendeuse"], ["lecteur", "lectrice"],
+      ["traducteur", "traductrice"], ["créateur", "créatrice"], ["animateur", "animatrice"],
+      ["présentateur", "présentatrice"], ["réalisateur", "réalisatrice"], ["instituteur", "institutrice"],
+      ["inspecteur", "inspectrice"], ["producteur", "productrice"], ["ambassadeur", "ambassadrice"],
+      ["voyageur", "voyageuse"], ["travailleur", "travailleuse"], ["menteur", "menteuse"],
+      ["heureux", "heureuse"], ["malheureux", "malheureuse"], ["sérieux", "sérieuse"],
+      ["curieux", "curieuse"], ["ambitieux", "ambitieuse"], ["anxieux", "anxieuse"],
+      ["peureux", "peureuse"], ["chanceux", "chanceuse"], ["orgueilleux", "orgueilleuse"],
+      ["actif", "active"], ["sportif", "sportive"], ["créatif", "créative"],
+      ["naïf", "naïve"], ["positif", "positive"], ["relatif", "relative"],
+      ["collectif", "collective"], ["intuitif", "intuitive"], ["exclusif", "exclusive"],
+      ["blanc", "blanche"], ["franc", "franche"], ["sec", "sèche"], ["public", "publique"],
+      ["grec", "grecque"], ["frais", "fraîche"], ["long", "longue"], ["gros", "grosse"],
+      ["doux", "douce"], ["faux", "fausse"], ["vieux", "vieille"], ["nouveau", "nouvelle"],
+      ["beau", "belle"], ["fou", "folle"], ["mou", "molle"], ["gentil", "gentille"],
+      ["bon", "bonne"], ["européen", "européenne"], ["canadien", "canadienne"],
+      ["italien", "italienne"], ["parisien", "parisienne"], ["ancien", "ancienne"],
+      ["dernier", "dernière"], ["premier", "première"], ["entier", "entière"],
+      ["léger", "légère"], ["cher", "chère"], ["fier", "fière"], ["complet", "complète"],
+      ["secret", "secrète"], ["inquiet", "inquiète"], ["discret", "discrète"],
+      ["professionnel", "professionnelle"], ["officiel", "officielle"], ["essentiel", "essentielle"],
+      ["personnel", "personnelle"], ["actuel", "actuelle"], ["cruel", "cruelle"],
+      ["culturel", "culturelle"], ["naturel", "naturelle"], ["intellectuel", "intellectuelle"],
+      ["étudiant", "étudiante"], ["habitant", "habitante"], ["président", "présidente"],
+      ["candidat", "candidate"], ["avocat", "avocate"], ["client", "cliente"],
+      ["français", "française"], ["anglais", "anglaise"], ["allemand", "allemande"],
+      ["espagnol", "espagnole"], ["marocain", "marocaine"], ["américain", "américaine"],
+      ["égal", "égale"], ["social", "sociale"], ["national", "nationale"],
+      ["international", "internationale"], ["mondial", "mondiale"], ["principal", "principale"],
+      ["général", "générale"], ["original", "originale"], ["rival", "rivale"]
+    ];
+
+    const PLURAL = [
+      ["journal", "journaux"], ["cheval", "chevaux"], ["travail", "travaux"],
+      ["hôpital", "hôpitaux"], ["animal", "animaux"], ["canal", "canaux"],
+      ["capital", "capitaux"], ["idéal", "idéaux"], ["principal", "principaux"],
+      ["national", "nationaux"], ["général", "généraux"], ["social", "sociaux"],
+      ["spécial", "spéciaux"], ["original", "originaux"], ["ciel", "cieux"],
+      ["œil", "yeux"], ["neveu", "neveux"], ["jeu", "jeux"], ["lieu", "lieux"],
+      ["feu", "feux"], ["vœu", "vœux"], ["cheveu", "cheveux"], ["chou", "choux"],
+      ["bijou", "bijoux"], ["caillou", "cailloux"], ["genou", "genoux"],
+      ["hibou", "hiboux"], ["bureau", "bureaux"], ["tableau", "tableaux"],
+      ["château", "châteaux"], ["manteau", "manteaux"],
+      ["bateau", "bateaux"], ["cadeau", "cadeaux"], ["chapeau", "chapeaux"],
+      ["oiseau", "oiseaux"], ["couteau", "couteaux"], ["drapeau", "drapeaux"],
+      ["festival", "festivals"], ["bal", "bals"],
+      ["pneu", "pneus"], ["bleu", "bleus"], ["euro", "euros"],
+      ["Monsieur", "Messieurs"], ["Madame", "Mesdames"],
+      ["Mademoiselle", "Mesdemoiselles"], ["pays", "pays"], ["voix", "voix"],
+      ["prix", "prix"], ["temps", "temps"], ["choix", "choix"], ["héros", "héros"],
+      ["gaz", "gaz"], ["nez", "nez"], ["progrès", "progrès"], ["succès", "succès"],
+      ["discours", "discours"], ["permis", "permis"], ["souris", "souris"],
+      ["détail", "détails"], ["rail", "rails"], ["portail", "portails"],
+      ["démocratie", "démocraties"], ["gouvernement", "gouvernements"],
+      ["liberté", "libertés"], ["responsabilité", "responsabilités"],
+      ["entreprise", "entreprises"], ["citoyen", "citoyens"],
+      ["phénomène", "phénomènes"], ["crise", "crises"], ["débat", "débats"]
+    ].filter(([a]) => a.trim() === a);
+
+    const GENDER = [
+      ["gouvernement", "m"], ["chômage", "m"], ["développement", "m"],
+      ["environnement", "m"], ["changement", "m"], ["événement", "m"],
+      ["problème", "m"], ["système", "m"], ["programme", "m"], ["musée", "m"],
+      ["lycée", "m"], ["emploi", "m"], ["salaire", "m"], ["budget", "m"],
+      ["impôt", "m"], ["marché", "m"], ["projet", "m"], ["rapport", "m"],
+      ["débat", "m"], ["discours", "m"], ["réseau", "m"], ["pouvoir", "m"],
+      ["droit", "m"], ["monde", "m"], ["siècle", "m"], ["pays", "m"],
+      ["climat", "m"], ["réchauffement", "m"], ["territoire", "m"], ["quartier", "m"],
+      ["immeuble", "m"], ["risque", "m"], ["succès", "m"], ["échec", "m"],
+      ["progrès", "m"], ["enjeu", "m"], ["défi", "m"], ["impact", "m"],
+      ["phénomène", "m"], ["principe", "m"], ["objectif", "m"], ["bilan", "m"],
+      ["démocratie", "f"], ["liberté", "f"], ["égalité", "f"], ["solidarité", "f"],
+      ["responsabilité", "f"], ["société", "f"], ["économie", "f"], ["entreprise", "f"],
+      ["mondialisation", "f"], ["population", "f"], ["nation", "f"], ["banlieue", "f"],
+      ["pollution", "f"], ["énergie", "f"], ["ressource", "f"], ["crise", "f"],
+      ["pauvreté", "f"], ["inégalité", "f"], ["grève", "f"], ["compétence", "f"],
+      ["université", "f"], ["carrière", "f"], ["santé", "f"], ["épidémie", "f"],
+      ["retraite", "f"], ["justice", "f"], ["Constitution", "f"], ["sécurité", "f"],
+      ["identité", "f"], ["diversité", "f"], ["immigration", "f"], ["discrimination", "f"],
+      ["culture", "f"], ["information", "f"], ["publicité", "f"], ["opinion", "f"],
+      ["élection", "f"], ["réforme", "f"], ["décision", "f"], ["situation", "f"],
+      ["croissance", "f"], ["inflation", "f"], ["dette", "f"], ["politique", "f"],
+      ["diplomatie", "f"], ["frontière", "f"], ["indépendance", "f"], ["guerre", "f"],
+      ["paix", "f"], ["recherche", "f"], ["technologie", "f"], ["hypothèse", "f"]
+    ];
+
+    const VERBS = [
+      { inf: "être", forms: { je: "suis", tu: "es", il: "est", elle: "est", nous: "sommes", vous: "êtes", ils: "sont", elles: "sont" } },
+      { inf: "avoir", forms: { je: "ai", tu: "as", il: "a", elle: "a", nous: "avons", vous: "avez", ils: "ont", elles: "ont" } },
+      { inf: "aller", forms: { je: "vais", tu: "vas", il: "va", elle: "va", nous: "allons", vous: "allez", ils: "vont", elles: "vont" } },
+      { inf: "faire", forms: { je: "fais", tu: "fais", il: "fait", elle: "fait", nous: "faisons", vous: "faites", ils: "font", elles: "font" } },
+      { inf: "prendre", forms: { je: "prends", tu: "prends", il: "prend", elle: "prend", nous: "prenons", vous: "prenez", ils: "prennent", elles: "prennent" } },
+      { inf: "venir", forms: { je: "viens", tu: "viens", il: "vient", elle: "vient", nous: "venons", vous: "venez", ils: "viennent", elles: "viennent" } },
+      { inf: "pouvoir", forms: { je: "peux", tu: "peux", il: "peut", elle: "peut", nous: "pouvons", vous: "pouvez", ils: "peuvent", elles: "peuvent" } },
+      { inf: "vouloir", forms: { je: "veux", tu: "veux", il: "veut", elle: "veut", nous: "voulons", vous: "voulez", ils: "veulent", elles: "veulent" } },
+      { inf: "devoir", forms: { je: "dois", tu: "dois", il: "doit", elle: "doit", nous: "devons", vous: "devez", ils: "doivent", elles: "doivent" } },
+      { inf: "savoir", forms: { je: "sais", tu: "sais", il: "sait", elle: "sait", nous: "savons", vous: "savez", ils: "savent", elles: "savent" } },
+      { inf: "voir", forms: { je: "vois", tu: "vois", il: "voit", elle: "voit", nous: "voyons", vous: "voyez", ils: "voient", elles: "voient" } },
+      { inf: "dire", forms: { je: "dis", tu: "dis", il: "dit", elle: "dit", nous: "disons", vous: "dites", ils: "disent", elles: "disent" } },
+      { inf: "mettre", forms: { je: "mets", tu: "mets", il: "met", elle: "met", nous: "mettons", vous: "mettez", ils: "mettent", elles: "mettent" } },
+      { inf: "partir", forms: { je: "pars", tu: "pars", il: "part", elle: "part", nous: "partons", vous: "partez", ils: "partent", elles: "partent" } },
+      { inf: "sortir", forms: { je: "sors", tu: "sors", il: "sort", elle: "sort", nous: "sortons", vous: "sortez", ils: "sortent", elles: "sortent" } },
+      { inf: "connaître", forms: { je: "connais", tu: "connais", il: "connaît", elle: "connaît", nous: "connaissons", vous: "connaissez", ils: "connaissent", elles: "connaissent" } },
+      { inf: "croire", forms: { je: "crois", tu: "crois", il: "croit", elle: "croit", nous: "croyons", vous: "croyez", ils: "croient", elles: "croient" } },
+      { inf: "écrire", forms: { je: "écris", tu: "écris", il: "écrit", elle: "écrit", nous: "écrivons", vous: "écrivez", ils: "écrivent", elles: "écrivent" } },
+      { inf: "lire", forms: { je: "lis", tu: "lis", il: "lit", elle: "lit", nous: "lisons", vous: "lisez", ils: "lisent", elles: "lisent" } },
+      { inf: "ouvrir", forms: { je: "ouvre", tu: "ouvres", il: "ouvre", elle: "ouvre", nous: "ouvrons", vous: "ouvrez", ils: "ouvrent", elles: "ouvrent" } },
+      { inf: "recevoir", forms: { je: "reçois", tu: "reçois", il: "reçoit", elle: "reçoit", nous: "recevons", vous: "recevez", ils: "reçoivent", elles: "reçoivent" } },
+      { inf: "tenir", forms: { je: "tiens", tu: "tiens", il: "tient", elle: "tient", nous: "tenons", vous: "tenez", ils: "tiennent", elles: "tiennent" } },
+      { inf: "suivre", forms: { je: "suis", tu: "suis", il: "suit", elle: "suit", nous: "suivons", vous: "suivez", ils: "suivent", elles: "suivent" } },
+      { inf: "vivre", forms: { je: "vis", tu: "vis", il: "vit", elle: "vit", nous: "vivons", vous: "vivez", ils: "vivent", elles: "vivent" } },
+      { inf: "boire", forms: { je: "bois", tu: "bois", il: "boit", elle: "boit", nous: "buvons", vous: "buvez", ils: "boivent", elles: "boivent" } },
+      { inf: "courir", forms: { je: "cours", tu: "cours", il: "court", elle: "court", nous: "courons", vous: "courez", ils: "courent", elles: "courent" } },
+      { inf: "mourir", forms: { je: "meurs", tu: "meurs", il: "meurt", elle: "meurt", nous: "mourons", vous: "mourez", ils: "meurent", elles: "meurent" } },
+      { inf: "naître", forms: { je: "nais", tu: "nais", il: "naît", elle: "naît", nous: "naissons", vous: "naissez", ils: "naissent", elles: "naissent" } },
+      { inf: "envoyer", forms: { je: "envoie", tu: "envoies", il: "envoie", elle: "envoie", nous: "envoyons", vous: "envoyez", ils: "envoient", elles: "envoient" } },
+      { inf: "appeler", forms: { je: "appelle", tu: "appelles", il: "appelle", elle: "appelle", nous: "appelons", vous: "appelez", ils: "appellent", elles: "appellent" } },
+      { inf: "jeter", forms: { je: "jette", tu: "jettes", il: "jette", elle: "jette", nous: "jetons", vous: "jetez", ils: "jettent", elles: "jettent" } },
+      { inf: "acheter", forms: { je: "achète", tu: "achètes", il: "achète", elle: "achète", nous: "achetons", vous: "achetez", ils: "achètent", elles: "achètent" } },
+      { inf: "préférer", forms: { je: "préfère", tu: "préfères", il: "préfère", elle: "préfère", nous: "préférons", vous: "préférez", ils: "préfèrent", elles: "préfèrent" } },
+      { inf: "espérer", forms: { je: "espère", tu: "espères", il: "espère", elle: "espère", nous: "espérons", vous: "espérez", ils: "espèrent", elles: "espèrent" } },
+      { inf: "commencer", forms: { je: "commence", tu: "commences", il: "commence", elle: "commence", nous: "commençons", vous: "commencez", ils: "commencent", elles: "commencent" } },
+      { inf: "manger", forms: { je: "mange", tu: "manges", il: "mange", elle: "mange", nous: "mangeons", vous: "mangez", ils: "mangent", elles: "mangent" } },
+      { inf: "choisir", forms: { je: "choisis", tu: "choisis", il: "choisit", elle: "choisit", nous: "choisissons", vous: "choisissez", ils: "choisissent", elles: "choisissent" } },
+      { inf: "finir", forms: { je: "finis", tu: "finis", il: "finit", elle: "finit", nous: "finissons", vous: "finissez", ils: "finissent", elles: "finissent" } },
+      { inf: "réussir", forms: { je: "réussis", tu: "réussis", il: "réussit", elle: "réussit", nous: "réussissons", vous: "réussissez", ils: "réussissent", elles: "réussissent" } },
+      { inf: "réfléchir", forms: { je: "réfléchis", tu: "réfléchis", il: "réfléchit", elle: "réfléchit", nous: "réfléchissons", vous: "réfléchissez", ils: "réfléchissent", elles: "réfléchissent" } },
+      { inf: "traduire", forms: { je: "traduis", tu: "traduis", il: "traduit", elle: "traduit", nous: "traduisons", vous: "traduisez", ils: "traduisent", elles: "traduisent" } },
+      { inf: "produire", forms: { je: "produis", tu: "produis", il: "produit", elle: "produit", nous: "produisons", vous: "produisez", ils: "produisent", elles: "produisent" } },
+      { inf: "conduire", forms: { je: "conduis", tu: "conduis", il: "conduit", elle: "conduit", nous: "conduisons", vous: "conduisez", ils: "conduisent", elles: "conduisent" } },
+      { inf: "convaincre", forms: { je: "convaincs", tu: "convaincs", il: "convainc", elle: "convainc", nous: "convainquons", vous: "convainquez", ils: "convainquent", elles: "convainquent" } },
+      { inf: "résoudre", forms: { je: "résous", tu: "résous", il: "résout", elle: "résout", nous: "résolvons", vous: "résolvez", ils: "résolvent", elles: "résolvent" } },
+      { inf: "offrir", forms: { je: "offre", tu: "offres", il: "offre", elle: "offre", nous: "offrons", vous: "offrez", ils: "offrent", elles: "offrent" } },
+      { inf: "découvrir", forms: { je: "découvre", tu: "découvres", il: "découvre", elle: "découvre", nous: "découvrons", vous: "découvrez", ils: "découvrent", elles: "découvrent" } },
+      { inf: "craindre", forms: { je: "crains", tu: "crains", il: "craint", elle: "craint", nous: "craignons", vous: "craignez", ils: "craignent", elles: "craignent" } },
+      { inf: "dormir", forms: { je: "dors", tu: "dors", il: "dort", elle: "dort", nous: "dormons", vous: "dormez", ils: "dorment", elles: "dorment" } },
+      { inf: "sentir", forms: { je: "sens", tu: "sens", il: "sent", elle: "sent", nous: "sentons", vous: "sentez", ils: "sentent", elles: "sentent" } }
+    ];
+
+    const PRONOUNS = ["je", "tu", "il", "elle", "nous", "vous", "ils", "elles"];
+
+    const overlay = document.getElementById("overlay");
+    const mark = document.getElementById("overlay-mark");
+    const remember = document.getElementById("remember");
+    const scoreline = document.getElementById("scoreline");
+
+    const sessions = {};
+    let stats = { ok: 0, bad: 0 };
+    let overlayTimer = null;
+    let waitingMode = null;
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function norm(s) {
+      return s.normalize("NFC").trim().toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ");
+    }
+
+    function stripExtras(s, pronoun) {
+      let t = norm(s);
+      t = t.replace(/^(le|la|les|un|une|des|l')\s+/i, "");
+      t = t.replace(/^l'/, "");
+      if (pronoun) {
+        const p = norm(pronoun);
+        if (t.startsWith(p + " ")) t = t.slice(p.length + 1);
+      }
+      return t;
+    }
+
+    function buildQueue(m) {
+      if (m === "fem") return shuffle(FEM).map(([q, a]) => ({ q, a, kind: "text" }));
+      if (m === "plural") return shuffle(PLURAL).map(([q, a]) => ({ q, a, kind: "text" }));
+      if (m === "gender") return shuffle(GENDER).map(([q, a]) => ({ q, a, kind: "gender" }));
+      const items = [];
+      for (const v of VERBS) {
+        for (const p of PRONOUNS) items.push({ q: v.inf, pronoun: p, a: v.forms[p], kind: "verb" });
+      }
+      return shuffle(items);
+    }
+
+    function wordBox(text, sub) {
+      return `
+        <div class="rounded-2xl border border-line bg-ink/50 px-5 py-6 text-center">
+          <p class="font-serif text-3xl text-cream md:text-4xl">${text}</p>
+          ${sub ? `<p class="mt-2 text-[10px] uppercase tracking-[0.2em] text-mute">${sub}</p>` : ""}
+        </div>`;
+    }
+
+    function currentOf(mode) {
+      const s = sessions[mode];
+      return s.queue[s.index];
+    }
+
+    function render(mode) {
+      const s = sessions[mode];
+      const item = currentOf(mode);
+      s.root.querySelector(".count").textContent = `${s.index + 1} / ${s.queue.length}`;
+      const box = s.root.querySelector(".prompt");
+      if (item.kind === "verb") {
+        box.innerHTML = `<div class="grid grid-cols-2 gap-3">${wordBox(item.q, "verbe")}${wordBox(item.pronoun, "personne")}</div>`;
+      } else if (item.kind === "gender") {
+        box.innerHTML = wordBox(item.q, "nom");
+      } else {
+        box.innerHTML = wordBox(item.q, mode === "fem" ? "masculin" : "singulier");
+      }
+      const input = s.root.querySelector("input");
+      if (input) input.value = "";
+      scoreline.textContent = `对 ${stats.ok}  ·  错 ${stats.bad}`;
+    }
+
+    function burst() {
+      if (typeof confetti !== "function") return;
+      confetti({
+        particleCount: 70,
+        spread: 62,
+        origin: { y: 0.62 },
+        colors: ["#d7b07a", "#f4efe6", "#c45c4a", "#8aa0c8"],
+      });
+    }
+
+    function next(mode) {
+      const s = sessions[mode];
+      s.index += 1;
+      if (s.index >= s.queue.length) {
+        s.queue = buildQueue(mode);
+        s.index = 0;
+      }
+      render(mode);
+    }
+
+    function showFaux(answer, mode) {
+      waitingMode = mode;
+      overlay.classList.remove("hidden");
+      remember.classList.add("hidden");
+      mark.textContent = "Faux";
+      mark.className = "animate__animated animate__shakeX font-serif text-7xl font-medium tracking-[0.18em] text-red-500 md:text-8xl";
+      clearTimeout(overlayTimer);
+      overlayTimer = setTimeout(() => {
+        mark.textContent = answer;
+        mark.className = "animate__animated animate__fadeIn font-serif text-5xl font-medium tracking-normal text-red-400 md:text-6xl";
+        remember.classList.remove("hidden");
+        remember.classList.add("animate__animated", "animate__fadeInUp");
+      }, 2000);
+    }
+
+    function hideOverlay() {
+      overlay.classList.add("hidden");
+      remember.classList.add("hidden");
+      remember.classList.remove("animate__animated", "animate__fadeInUp");
+    }
+
+    function judge(mode, ok, shown) {
+      if (ok) {
+        stats.ok += 1;
+        burst();
+        next(mode);
+      } else {
+        stats.bad += 1;
+        showFaux(shown, mode);
+      }
+      scoreline.textContent = `对 ${stats.ok}  ·  错 ${stats.bad}`;
+    }
+
+    document.querySelectorAll("article[data-mode]").forEach((root) => {
+      const mode = root.dataset.mode;
+      sessions[mode] = { root, queue: buildQueue(mode), index: 0 };
+      render(mode);
+
+      const form = root.querySelector(".answer-form");
+      if (form) {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const item = currentOf(mode);
+          const given = stripExtras(form.querySelector("input").value, item.pronoun);
+          const shown = item.kind === "verb" ? `${item.pronoun} ${item.a}` : item.a;
+          judge(mode, given === norm(item.a) && given.length > 0, shown);
+        });
+      }
+
+      root.querySelectorAll("[data-g]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const item = currentOf(mode);
+          const label = item.a === "m" ? "阳 · masculin" : "阴 · féminin";
+          judge(mode, btn.dataset.g === item.a, `${item.q} → ${label}`);
+        });
+      });
+    });
+
+    remember.addEventListener("click", () => {
+      const mode = waitingMode;
+      hideOverlay();
+      if (mode) next(mode);
+      waitingMode = null;
+    });
+  </script>
+</body>
+</html>
